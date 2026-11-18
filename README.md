@@ -1,7 +1,18 @@
 # Knowledge Graph for Emerging Technologies
-This project was developed as part of the Bachelor Practical Course on Data Engineering at TUM. It provides a modular Python pipeline for constructing a knowledge graph that links emerging technologies, research papers, and startups.
 
-*For the guide on how to run the pipeline, scroll down to* **Running the Pipeline** 
+Built with [Jakob Kramer](https://github.com/Codekob) in the Bachelor Practical Course on Data Engineering at TUM (summer 2025). The pipeline collects emerging technologies, high-impact papers and young European startups and links them into a Neo4j knowledge graph, so you can ask things like "which startups work on the same technology as these papers?". This is my fork; the original lives at [Codekob/BPC-KG-for-Emerging-Technologies](https://github.com/Codekob/BPC-KG-for-Emerging-Technologies).
+
+**My part** was everything between raw data and graph: cleaning and normalising papers and technologies (`scripts/clean/`), classifying papers into technologies (`scripts/classify/`), and the entity linking between papers, companies and technologies plus the node files for import (`scripts/linking/`). Jakob built the data fetching, the LLM enrichment of the technology list and the end-to-end runner.
+
+### How the linking works
+
+Each paper or company is compared with a text profile of every technology (name, definition, synonyms, domain keywords):
+
+1. **Sentence embeddings** (`paraphrase-mpnet-base-v2`): cosine similarity between the paper or company text and each technology profile. If the technology's name appears in the paper title or company name, its score gets a fixed boost.
+2. **Confident links:** a score above the high threshold is accepted directly. For companies, enough overlap between Crunchbase categories and the technology's keywords (exact or fuzzy) also counts.
+3. **Grey zone:** between the low and the high threshold, a link is only accepted if at least one more signal agrees: TF-IDF cosine similarity, RapidFuzz token similarity, or a shared keyword. The point is to keep borderline embedding matches without letting every vaguely related paper through.
+
+The thresholds are constants at the top of each linking script.
 
 ## Project Overview
 The pipeline curates a list of emerging technologies and automatically collects:
@@ -20,8 +31,6 @@ The pipeline generates six CSV files:
 - 3 Edge files: Paper–Technology, Company–Technology, Company–Paper
 
 These files are ready for direct bulk import into Neo4j, allowing immediate querying via Cypher.
-
-How to Use
 
 ## Setup
 
@@ -61,16 +70,17 @@ The resulting Neo4j import file will be written to
 ## Import into Neo4j
 
 **Import Node Files**
-Importing the node files in neo4j is very straigt forward and easy in Neo4j Desktop.
+Importing the node files in neo4j is straightforward in Neo4j Desktop.
 
 1. Upload the files in the upload section highlighted by the red frame.
 
 <img width="941" height="532" alt="image" src="https://github.com/user-attachments/assets/2fe748a5-2c6f-47ad-a34c-f7b490466060" />
 
-2. Add a label and select the respective file to map. Map the properties from file
+2. Add a label and select the respective file to map. Map the properties from the file.
+
 <img width="946" height="672" alt="image" src="https://github.com/user-attachments/assets/63450589-0877-485e-82f4-af760597920c" />
 
-3. Hit "Run import" and repeat this step for Companies and Technologies. HOWEVER NOT FOR THE PAPERS
+3. Hit "Run import" and repeat this step for Companies and Technologies. but not for the papers (see next step)
 4. For the papers, upload the paper nodes into the import folder. Where to find this folder is specified here: [Default file locations - Operations Manual](https://neo4j.com/docs/operations-manual/current/configuration/file-locations/#neo4j-import)
 5. Execute this cypher query:
 ```cypher
@@ -103,14 +113,14 @@ MERGE (c)-[:USES]->(t);
 ```cypher
 LOAD CSV WITH HEADERS FROM 'file:///paper_technology_links.csv' AS row
 
-// Match existing company and technology nodes
+// Match existing paper and technology nodes
 MATCH (p:Paper {paper_id: row.paper_id})
 MATCH (t:Technology {tech_name: row.technology_name})
 
 // Create relationship
 MERGE (p)-[:TALKS_ABOUT]->(t);
 ```
-The company-paper link file is optional as it is just the transitive linking of paper-technology -> technology-company
+The company–paper link file is optional: it is the transitive link paper → technology → company.
 
 ## Knowledge Graph Schema
 
@@ -126,7 +136,7 @@ The company-paper link file is optional as it is just the transitive linking of 
 | company_name       | string     |         name of the company     |
 | founding_date      | datetime   |       founding date of the company                   |
 | location           | string     |location where the company is situated    |
-| funding_total_usd  | float      |                    total funding the company in USD $      |
+| funding_total_usd  | float      |                    total funding of the company in USD      |
 | funding_stage      | string     |             funding stage (late stage venture, early stage venture)             |
 
 ---
