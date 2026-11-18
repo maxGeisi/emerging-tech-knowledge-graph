@@ -1,6 +1,6 @@
 # Knowledge Graph for Emerging Technologies
 
-Built with [Jakob Kramer](https://github.com/Codekob) in the Bachelor Practical Course on Data Engineering at TUM (summer 2025). The pipeline collects emerging technologies, high-impact papers and young European startups and links them into a Neo4j knowledge graph, so you can ask things like "which startups work on the same technology as these papers?". This is my fork; the original lives at [Codekob/BPC-KG-for-Emerging-Technologies](https://github.com/Codekob/BPC-KG-for-Emerging-Technologies).
+University course project: built with [Jakob Kramer](https://github.com/Codekob) for the Bachelor Practical Course (Praktikum) on Data Engineering at TU Munich, summer semester 2025. The pipeline collects emerging technologies, high-impact papers and young European startups and links them into a Neo4j knowledge graph, so you can ask things like "which startups work on the same technology as these papers?". This is my fork; the original lives at [Codekob/BPC-KG-for-Emerging-Technologies](https://github.com/Codekob/BPC-KG-for-Emerging-Technologies).
 
 **My part** was everything between raw data and graph: cleaning and normalising papers and technologies (`scripts/clean/`), classifying papers into technologies (`scripts/classify/`), and the entity linking between papers, companies and technologies plus the node files for import (`scripts/linking/`). Jakob built the data fetching, the LLM enrichment of the technology list and the end-to-end runner.
 
