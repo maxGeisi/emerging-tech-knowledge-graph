@@ -5,7 +5,7 @@ link_comp_to_technology.py
 1) Extract Crunchbase company data (id, name, description, categories)
    into a CSV.
 2) Match companies to technologies via:
-     - Direct category↔keyword overlap (≥70%, with normalization & fuzzy)
+     - Direct category↔keyword overlap (≥40%, with normalization & fuzzy)
        * also direct-match against the technology’s own name
      - Semantic embeddings (Sentence-Transformers)
      - TF-IDF cosine similarity
@@ -37,7 +37,7 @@ OUT_CLASSIFIED   = 'pipeline/company-data/companies_classified.csv'
 OUT_LINKS        = 'pipeline/neo4j-files/company_technology_links.csv'
 
 # Direct category matching thresholds
-CATEGORY_THRESH   = 0.40   # require ≥70% of tech keywords matched
+CATEGORY_THRESH   = 0.40   # require ≥40% of tech keywords matched
 FUZZY_CAT_THRESH  = 75     # rapidfuzz.token_sort_ratio threshold
 
 # Embedding & auxiliary thresholds
